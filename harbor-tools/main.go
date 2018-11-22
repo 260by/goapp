@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"sync"
 	"strings"
+	"time"
 	"github.com/tidwall/gjson"
 )
 
@@ -20,31 +21,46 @@ var (
 	pull bool
 	push bool
 	imagesFile string
+	project string
 )
 
 func usage() {
-	fmt.Printf(`Description: show、pull、push harbor docker registry under the base project images
+	fmt.Printf(`Description: show、pull、push harbor docker registry under the appoint project images. Executed show is and saved to a file at the same time, Ex: /tmp/docker-images-201811221805.txt
 Options:
 `)
 	flag.PrintDefaults()
 }
 
 func main() {
-	flag.StringVar(&baseURL, "url", "", "harbor docker registry address")
+	flag.StringVar(&baseURL, "url", "", "harbor docker registry address, Ex: reg.harbor.com")
 	flag.StringVar(&user, "user", "", "harbor registry user name")
 	flag.StringVar(&passwd, "password", "", "harbor registry user password")
 	flag.BoolVar(&show, "show", false, "Show docker images")
 	flag.BoolVar(&pull, "pull", false, "Pull docker images to local")
 	flag.BoolVar(&push, "push", false, "Push docker images to registry")
 	flag.StringVar(&imagesFile, "file", "", "Docker image list file name")
+	flag.StringVar(&project, "project", "", "Harbor registry project name")
 	flag.Usage = usage
 	flag.Parse()
+
+	if baseURL == "" || user == "" || passwd == "" || project == "" {
+		flag.Usage()
+		return
+	}
 
 	images := getImage()
 
 	if show {
+		var filename, fileContent string
+		filename = fmt.Sprintf("/tmp/docker-images-%s.txt", time.Now().Format("200601021504"))
 		for k := range images {
 			fmt.Println(images[k])
+			fileContent += fmt.Sprintf("%s\n", images[k])
+		}
+		if err := ioutil.WriteFile(filename, []byte(fileContent), 0644); err != nil {
+			panic(err)
+		} else {
+			fmt.Printf("\033[1;32mOutput to %s\033[0m\n", filename)
 		}
 	}
 
@@ -97,7 +113,7 @@ func main() {
 func getImage() (images []string) {
 	client := &http.Client{}
 
-	repoURL := fmt.Sprintf("https://%s:%s@%s/api/search?q=base", user, passwd, baseURL)
+	repoURL := fmt.Sprintf("https://%s:%s@%s/api/search?q=%s", user, passwd, baseURL, project)
 	tagBaseURL := fmt.Sprintf("https://%s:%s@%s/api/repositories/", user, passwd, baseURL)
 	req, err := http.NewRequest("GET", repoURL, nil)
 
