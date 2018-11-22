@@ -1,0 +1,53 @@
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  REGISTRY_USER: bot
+  REGISTRY_PWD: Harbor12345
+  DOCER_REJISTRY: reg.docker.com
+
+## 此处定义各种测试， 如代码覆盖率测试， 单元测试， 代码风格检测等
+.test: 
+  stage: test
+  script:
+    - echo 'test ok'
+
+# 构建镜像
+build:
+  stage: build
+  before_script:
+    - docker login -u ${REGISTRY_USER} -p ${REGISTRY_PWD} ${DOCER_REJISTRY}
+  script:
+    - rm -rf .git
+    - docker build -t ${DOCER_REJISTRY}/library/${CI_PROJECT_PATH}/nginx:${CI_COMMIT_SHA:0:8} -f .nginx.Dockerfile .
+    - docker build -t ${DOCER_REJISTRY}/library/${CI_PROJECT_PATH}/php:${CI_COMMIT_SHA:0:8} -f .php.Dockerfile .
+    #- docker build -t ${DOCER_REJISTRY}/library/${CI_PROJECT_PATH}/crontab:${CI_COMMIT_SHA:0:8} -f .crontab.Dockerfile .
+    - docker push ${DOCER_REJISTRY}/library/${CI_PROJECT_PATH}/nginx:${CI_COMMIT_SHA:0:8}
+    - docker push ${DOCER_REJISTRY}/library/${CI_PROJECT_PATH}/php:${CI_COMMIT_SHA:0:8}
+    #- docker push ${DOCER_REJISTRY}/library/${CI_PROJECT_PATH}/crontab:${CI_COMMIT_SHA:0:8}
+    - echo 'build image complete.'
+  only:
+    - dev  #指定构建的分支名称, 如不指定则所有分支都会构建
+    
+# 发布
+.deploy: &deploy
+  stage: deploy
+  script:
+   - APP_VERSION=${CI_COMMIT_SHA:0:8} envsubst < stack.yaml | kubectl apply -f - -n ${NAMESPACE}
+
+## 发布到环境
+{{range $env := .Env}}
+deploy:{{$env}}:
+  <<: *deploy
+  variables:
+    NAMESPACE: {{$env}}
+  environment:
+    <<: *environment
+    name: {{$env}}
+  only:
+    - {{$env}}
+  when: manual
+  {{if eq $env "stable"}}tags:
+    - Aliyun{{end}}{{end}}

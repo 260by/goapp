@@ -1,0 +1,16 @@
+project:
+  - Name: my-web
+    Git: github.com:sre/test-web.git
+    Server:
+      - 192.168.1.173
+
+  - Name: web_api
+    Git: github.com:web/api.git
+    Server:
+      - 192.168.1.162
+      - 192.168.1.163
+User: root
+PrivateKey: /root/.ssh/id_rsa
+UploadDir: /root
+UnzipDir: /data/src/www
+DeployDir: /data/wwwroot

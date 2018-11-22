@@ -1,0 +1,7 @@
+FROM reg.docker.com/base/php-crontab:7.0.8
+
+MAINTAINER zengming
+
+RUN echo '* soft core 0' >> /etc/security/limits.conf && echo '* hard core 0' >> /etc/security/limits.conf
+
+COPY . /data/wwwroot

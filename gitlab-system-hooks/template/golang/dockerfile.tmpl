@@ -1,0 +1,14 @@
+FROM reg.docker.com/base/alpine:3.6
+
+MAINTAINER zengming
+
+RUN apk update \
+ && apk add --no-cache \
+ && apk add ca-certificates
+
+ADD {{.Name}} /usr/local/bin/app
+ADD config/ /usr/local/etc/{{.Name}}/
+
+EXPOSE 5000
+
+CMD ["{{.Name}}", "-config=/usr/local/etc/{{.Name}}/{{.Env}}/config.yaml"]

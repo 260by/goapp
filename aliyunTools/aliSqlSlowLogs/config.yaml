@@ -1,0 +1,21 @@
+regionid: cn-shanghai
+accesskey: accessKey
+secretkey: secretKey
+sortkey: TotalQueryTimes
+pagesize: 50
+rds:
+  - name: a-mysql
+    dbinstanceid: a123bc
+  - name: b-mysql
+    dbinstanceid: c34aef
+filedir: /tmp/csv/aaa
+smtp:
+  server: smtp.example.com
+  port: 25
+  user: admin@example.com
+  password: adminpassword
+sendto:
+  - a@example.com
+mailtitle: maile title
+
+  

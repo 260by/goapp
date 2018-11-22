@@ -1,0 +1,18 @@
+logs:
+  - name: hao
+    path:
+      dir: /data/logs_bak/hao_log/year/month/day
+      files: [admin, api, consumer]
+      ext: .tar.gz
+
+  - name: pass
+    path:
+      dir: /data/logs_bak/pass_log/year/month/day
+      files: [sms, request]
+      ext:
+
+  - name: ttt
+    path:
+      dir: /data/logs_bak/ttt_log
+      files: [im, jobs]
+      ext: .zip

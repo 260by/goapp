@@ -1,0 +1,17 @@
+regionid: cn-shanghai
+accesskey: accessKey
+secretkey: secretKey
+pagesize: 100
+filedir: /tmp/csv/aaa
+smtp:
+  server: smtp.example.com
+  port: 25
+  user: admin@example.com
+  password: adminpassword
+sendto:
+  - a@example.com
+  - b@example.com
+mailtitle: mail title
+ecslistfile: resource/ecs_list.csv
+rdslistfile: resource/rds_list.csv
+kvstorelistfile: resource/kvstore_list.csv

@@ -1,0 +1,55 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  REGISTRY_USER: bot
+  REGISTRY_PWD: Harbor12345
+  DOCER_REJISTRY: reg.docker.com
+
+.tags_except: 
+  except:{{range $env := .Env}}
+    - &{{$env}}_tag /^((?!{{$env}}).)*$/{{end}}
+
+.build: &build
+  stage: build
+  before_script:
+    - docker login -u ${REGISTRY_USER} -p ${REGISTRY_PWD} ${DOCER_REJISTRY}
+    - export VOLUME_PATH=/data/gitlab.com/gitlab-runner-home
+    - export CODE_PATH=$(echo $PWD|awk -F'[/]' '{print $4 "/" $5 "/" $6 "/" $7 "/" $8}')
+    - export REPO_NAME="gitlab.com/${CI_PROJECT_PATH}"
+    - docker run --rm -i -v ${VOLUME_PATH}/${CODE_PATH}:/${CI_PROJECT_PATH} -w /${CI_PROJECT_PATH} reg.docker.com/base/node:8-alpine npm install
+  script:
+    - &build_image docker build -t ${DOCER_REJISTRY}/library/${CI_PROJECT_PATH}/nginx:${CI_PIPELINE_ID} .
+    - &push_image docker push ${DOCER_REJISTRY}/library/${CI_PROJECT_PATH}/nginx:${CI_PIPELINE_ID}
+  only:
+    - tags
+{{range $env := .Env}}
+build:{{$env}}:
+  <<: *build
+  script:
+    - docker run --rm -i -v ${VOLUME_PATH}/${CODE_PATH}:/${CI_PROJECT_PATH} -w /${CI_PROJECT_PATH} reg.docker.com/base/node:8-alpine npm run {{$env}}
+    - *build_image
+    - *push_image
+  except:
+    - *{{$env}}_tag
+{{end}}
+.deploy: &deploy
+  stage: deploy
+  script:
+    - envsubst < stack.yaml | kubectl apply -f - -n $NAMESPACE
+  only:
+    - tags
+{{range $env := .Env}}
+deploy:{{$env}}:
+  <<: *deploy
+  variables:
+    ENV: {{$env}}
+    NAMESPACE: {{$env}}
+  environment:
+    name: $ENV
+  except:
+    - *{{$env}}_tag
+  when: manual
+  {{if eq $env "stable"}}tags:
+    - Aliyun{{end}}{{end}}

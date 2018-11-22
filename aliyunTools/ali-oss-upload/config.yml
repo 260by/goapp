@@ -1,0 +1,4 @@
+EndPoint: oss-cn-beijing.aliyuncs.com
+AccessKeyID: accesskeyid
+AccessKeySecret: accesskeysecret
+BucketName: test-bucket

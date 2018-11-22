@@ -1,0 +1,8 @@
+test:
+  accesskey: accessKey
+  secretkey: secretKey
+  sslcertdir: /usr/local/etc/nginx/ssl
+stable:
+  accesskey: accessKey
+  secretkey: secretKey
+  sslcertdir: /usr/local/etc/nginx/ssl

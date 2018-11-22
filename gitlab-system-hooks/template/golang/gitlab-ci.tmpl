@@ -1,0 +1,48 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  REGISTRY_USER: bot
+  REGISTRY_PWD: Harbor12345
+  DOCER_REJISTRY: reg.docker.com
+  DOCKER_IMAGE: ${DOCER_REJISTRY}/base/golang:1.9.2-alpine3.6
+  REPO_NAME: gitlab.com/${CI_PROJECT_PATH}   #Like this "gitlab.com/orz/service-token"
+  GOPATH: /go
+  OPTIONS: -e GOOS=linux -e CGO_ENABLED=0 -e GOARCH=amd64
+  WORK_DIR: $GOPATH/src/$REPO_NAME
+
+build:
+  stage: build
+  before_script:
+    - docker login -u ${REGISTRY_USER} -p ${REGISTRY_PWD} ${DOCER_REJISTRY}
+    - export VOLUME_PATH=/data/gitlab.com/gitlab-runner-home
+    - export CODE_PATH=$(echo $PWD|awk -F'[/]' '{print $4 "/" $5 "/" $6 "/" $7 "/" $8}')
+  script:
+    - docker run --rm -i -v ${VOLUME_PATH}/${CODE_PATH}:${WORK_DIR} -w ${WORK_DIR} ${OPTIONS} ${DOCKER_IMAGE} go build -o {{.Name}} server/main.go
+    - docker build -t ${DOCER_REJISTRY}/library/${CI_PROJECT_PATH}/go:${CI_COMMIT_SHA:0:8} -f .
+    - docker push ${DOCER_REJISTRY}/library/${CI_PROJECT_PATH}/go:${CI_COMMIT_SHA:0:8}
+    - echo 'build complete.'
+  only:
+    - dev
+  artifacts: # 生成构建附件，以供下载
+    expire_in: 1 week
+    paths:
+    - build
+
+.deploy: &deploy
+  stage: deploy
+  script:
+    - APP_VERSION=${CI_COMMIT_SHA:0:8} envsubst < stack.yaml | kubectl apply -f - -n ${NAMESPACE}  # 定义发布命令
+
+{{range $env := .Env}}
+deploy:{{$env}}:
+  <<: *deploy
+  variables:
+    NAMESPACE: {{$env}}
+  environment:
+    <<: *environment
+    name: {{$env}}
+  when: manual
+  {{if eq $env "stable"}}tags:
+    - Aliyun{{end}}{{end}}
