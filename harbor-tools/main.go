@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"io/ioutil"
 	"os/exec"
-	"sync"
+	// "sync"
 	"strings"
 	"time"
 	"github.com/tidwall/gjson"
@@ -65,29 +65,29 @@ func main() {
 	}
 
 	if pull {
-		var wg sync.WaitGroup
+		// var wg sync.WaitGroup
 		for _, image := range images {
-			wg.Add(1)
-			go func(image string)  {
-				defer wg.Add(-1)
-				cmd := fmt.Sprintf("docker pull %s", image)
-				_, err := exec.Command("sh", "-c", cmd).Output()
-				if err != nil {
-					panic(err)
-				} else {
-					fmt.Printf("Pull %s image is success.\n", image)
-				}
-			}(image)
+			// wg.Add(1)
+			// go func(image string)  {
+			// 	defer wg.Add(-1)
+			// 	cmd := fmt.Sprintf("docker pull %s", image)
+			// 	_, err := exec.Command("sh", "-c", cmd).Output()
+			// 	if err != nil {
+			// 		panic(err)
+			// 	} else {
+			// 		fmt.Printf("Pull %s image is success.\n", image)
+			// 	}
+			// }(image)
 
-			// cmd := fmt.Sprintf("docker pull %s", images[k])
-			// _, err := exec.Command("sh", "-c", cmd).Output()
-			// if err != nil {
-			// 	panic(err)
-			// } else {
-			// 	fmt.Printf("Pull %s image is success.\n", images[k])
-			// }
+			cmd := fmt.Sprintf("docker pull %s", image)
+			_, err := exec.Command("sh", "-c", cmd).Output()
+			if err != nil {
+				panic(err)
+			} else {
+				fmt.Printf("Pull %s image is success.\n", image)
+			}
 		}
-		wg.Wait()
+		// wg.Wait()
 	}
 
 	if push && imagesFile != "" {
@@ -98,12 +98,12 @@ func main() {
 		imageList := strings.Split(strings.TrimSuffix(string(f), "\n"), "\n")
 
 		for k := range imageList {
-			cmd := fmt.Sprintf("docker push %s", images[k])
+			cmd := fmt.Sprintf("docker push %s", imageList[k])
 			_, err := exec.Command("sh", "-c", cmd).Output()
 			if err != nil {
 				panic(err)
 			} else {
-				fmt.Printf("Push %s image is success.\n", images[k])
+				fmt.Printf("Push %s image is success.\n", imageList[k])
 			}
 		}
 	}
