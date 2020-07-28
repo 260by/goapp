@@ -33,7 +33,7 @@ type config struct {
 	}
 	FileDir string
 	SMTP struct {
-		Server string
+		Addr string
 		Port int
 		User string
 		Password string
@@ -129,14 +129,14 @@ func main()  {
 				s = append(s, 
 					l.CreateTime,
 					l.DBName,
-					strconv.Itoa(l.MySQLTotalExecutionCounts),
-					strconv.Itoa(l.MySQLTotalExecutionTimes),
-					strconv.Itoa(l.MaxExecutionTime),
-					strconv.Itoa(l.MaxLockTime),
-					strconv.Itoa(l.ParseTotalRowCounts),
-					strconv.Itoa(l.ParseMaxRowCount),
-					strconv.Itoa(l.ReturnTotalRowCounts),
-					strconv.Itoa(l.ReturnMaxRowCount),
+					fmt.Sprint(l.MySQLTotalExecutionCounts),
+					fmt.Sprint(l.MySQLTotalExecutionTimes),
+					fmt.Sprint(l.MaxExecutionTime),
+					fmt.Sprint(l.MaxLockTime),
+					fmt.Sprint(l.ParseTotalRowCounts),
+					fmt.Sprint(l.ParseMaxRowCount),
+					fmt.Sprint(l.ReturnTotalRowCounts),
+					fmt.Sprint(l.ReturnMaxRowCount),
 					l.SQLText)
 
 				w.Write(s)
@@ -152,15 +152,18 @@ func main()  {
 	attach := csvList
 
 	// sendMail(subject, body, attach, to)
-	smtpServer := mail.SMTP{}
-	smtpServer = Config.SMTP
-	ok, err := mail.SendMail(subject, body, attach, to, smtpServer)
-	if err != nil {
+
+	smtpMail := mail.Server{
+		Addr: Config.SMTP.Addr,
+		Port: Config.SMTP.Port,
+		User: Config.SMTP.User,
+		Password: Config.SMTP.Password,
+	}
+
+	if err := smtpMail.SendAttach(subject, body, attach, to); err != nil {
 		panic(err)
 	}
-	if ok {
-		fmt.Println("Send Mail is OK")
-	}
-	
+
+	fmt.Println("Send Mail is OK")	
 	fmt.Println(time.Since(t1))
 }
