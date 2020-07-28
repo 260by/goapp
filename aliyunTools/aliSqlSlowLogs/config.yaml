@@ -10,7 +10,7 @@ rds:
     dbinstanceid: c34aef
 filedir: /tmp/csv/aaa
 smtp:
-  server: smtp.example.com
+  addr: smtp.example.com
   port: 25
   user: admin@example.com
   password: adminpassword
