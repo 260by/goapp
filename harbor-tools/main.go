@@ -253,14 +253,23 @@ type Tag struct {
 
 // getTags 获取存储库tag列表
 func getTags(user, password, addr, repository string) ([]Tag, error) {
+	Loop:
 	url := fmt.Sprintf("https://%s:%s@%s/api/repositories/%s/tags", user, password, addr, repository)
 
 	res, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
-
 	defer res.Body.Close()
+
+	if res.StatusCode == 504 {
+		goto Loop
+	}
+	
+	if res.StatusCode != 200 {
+		return nil, fmt.Errorf("get tages error, status code %v", res.StatusCode)
+	}
+
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
